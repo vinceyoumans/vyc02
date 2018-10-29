@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io' show Platform;
 
 void main() {
   runApp(new MaterialApp(
@@ -18,18 +19,46 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   List data;
 
+
+  //Note:  Using the REST server that was assigned with the challenge
+  // Probably wont work with Android as Android has a localhost on the
+  // virtual Devices...  so android will return a connection error.
+  //  SOLUTION:  for iOS use the URL localhost:3000
+  //              for ANDROID use URL http://10.0.2.2:3000
+
+
   Future<String> getData() async {
-    var response =
-        await http.get(Uri.encodeFull("http://localhost:3000/products"),
+
+    if (Platform.isAndroid) {
+      // Android-specific code
+      var response =
+//        await http.get(Uri.encodeFull("http://localhost:3000/products"),
+        await http.get(Uri.encodeFull("http://10.0.2.2:3000/products"),
             headers: {"Accept": "application/json"});
 
     this.setState(() {
-//      data = JSON.decode(response.body);  // depricated
       data = json.decode(response.body);
     });
     print(data[1]["id"]);
 
     return "Success!";
+
+
+    } else if (Platform.isIOS) {
+      // iOS-specific code
+      var response =
+        await http.get(Uri.encodeFull("http://localhost:3000/products"),
+//        await http.get(Uri.encodeFull("http://10.0.2.2:3000/products"),
+            headers: {"Accept": "application/json"});
+
+    this.setState(() {
+      data = json.decode(response.body);
+    });
+    print(data[1]["id"]);
+
+    return "Success!";
+    }
+
   }
 
   @override
@@ -75,7 +104,9 @@ class HomePageState extends State<HomePage> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
-                      decoration: new BoxDecoration(color: Colors.red),
+//                      decoration: new BoxDecoration(color: Colors.red),
+//                      decoration: new BoxDecoration(color: returnColor(data[index]["color"])),
+                      decoration: new BoxDecoration(color: Color(hexToInt(data[index]["color"]))),
 
                       child: new Center(
                         child: Padding(
@@ -189,3 +220,30 @@ class PictureWidget extends StatelessWidget {
           );
   }
 }
+
+
+
+int hexToInt(String hex)
+{
+  hex = hex.substring(2);
+  print("++++++++++++++++++++++++");
+  print( hex);
+  int val = 0;
+  int len = hex.length;
+  for (int i = 0; i < len; i++) {
+    int hexDigit = hex.codeUnitAt(i);
+    if (hexDigit >= 48 && hexDigit <= 57) {
+      val += (hexDigit - 48) * (1 << (4 * (len - 1 - i)));
+    } else if (hexDigit >= 65 && hexDigit <= 70) {
+      // A..F
+      val += (hexDigit - 55) * (1 << (4 * (len - 1 - i)));
+    } else if (hexDigit >= 97 && hexDigit <= 102) {
+      // a..f
+      val += (hexDigit - 87) * (1 << (4 * (len - 1 - i)));
+    } else {
+      throw new FormatException("Invalid hexadecimal value");
+    }
+  }
+  return val;
+}
+

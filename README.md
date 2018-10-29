@@ -43,3 +43,8 @@ but I am a little short on time...   I may do something similar to this
 latter today.
 
 
+I made two changes...
+1...   I am changing colors of icons on the list view
+2...  I am testing for Host device so the local rest server will work on
+both platforms.
+
